@@ -113,6 +113,7 @@ class UpdateNotifier {
 		if (this.options.remoteUrl) {
 			// Git approach - for packages not published on npm
 			latest = await gitVersionTag(this.options.remoteUrl, {getLatest: true});
+			latest = latest.startsWith('v') ? latest.slice(1) : latest
 		} else {
 			// Npm approach
 			latest = await latestVersion()(this.packageName, {version: distTag});
