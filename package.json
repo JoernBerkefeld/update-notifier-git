@@ -1,14 +1,12 @@
 {
-	"name": "update-notifier",
-	"version": "4.1.1",
+	"name": "update-notifier-git",
+	"version": "5.0.0",
 	"description": "Update notifications for your CLI app",
 	"license": "BSD-2-Clause",
-	"repository": "yeoman/update-notifier",
-	"funding": "https://github.com/yeoman/update-notifier?sponsor=1",
+	"repository": "JoernBerkefeld/update-notifier-git",
 	"author": {
-		"name": "Sindre Sorhus",
-		"email": "sindresorhus@gmail.com",
-		"url": "https://sindresorhus.com"
+		"name": "Jörn Berkefeld",
+		"email": "joern.berkefeld@gmail.com"
 	},
 	"engines": {
 		"node": ">=8"
@@ -41,7 +39,6 @@
 		"has-yarn": "^2.1.0",
 		"import-lazy": "^2.1.0",
 		"is-ci": "^2.0.0",
-		"is-installed-globally": "^0.3.1",
 		"is-npm": "^4.0.0",
 		"is-yarn-global": "^0.3.0",
 		"latest-version": "^5.0.0",
