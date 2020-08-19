@@ -1,24 +1,40 @@
-# update-notifier [![Build Status](https://travis-ci.org/yeoman/update-notifier.svg?branch=master)](https://travis-ci.org/yeoman/update-notifier)
+# update-notifier-git
 
 > Update notifications for your CLI app
 
-![](screenshot.png)
+![example](screenshot.png)
 
 Inform users of your package of updates in a non-intrusive way.
 
-#### Contents
-
 - [Install](#install)
 - [Usage](#usage)
+	- [Simple](#simple)
+	- [Comprehensive](#comprehensive)
+	- [Options and custom message](#options-and-custom-message)
 - [How](#how)
 - [API](#api)
+	- [notifier = updateNotifier(options)](#notifier--updatenotifieroptions)
+		- [options.pkg](#optionspkg)
+			- [options.pkg.name](#optionspkgname)
+			- [options.pkg.version](#optionspkgversion)
+		- [options.remoteUrl](#optionsremoteurl)
+		- [options.updateCheckInterval](#optionsupdatecheckinterval)
+		- [options.shouldNotifyInNpmScript](#optionsshouldnotifyinnpmscript)
+		- [options.distTag](#optionsdisttag)
+	- [notifier.fetchInfo()](#notifierfetchinfo)
+	- [notifier.notify(options?)](#notifiernotifyoptions)
+		- [options.defer](#optionsdefer)
+		- [options.message](#optionsmessage)
+		- [options.isGlobal](#optionsisglobal)
+		- [options.boxenOptions](#optionsboxenoptions)
+	- [User settings](#user-settings)
 - [About](#about)
 - [Users](#users)
 
 ## Install
 
 ```bash
-$ npm install update-notifier
+npm install update-notifier-git --save
 ```
 
 ## Usage
@@ -29,7 +45,12 @@ $ npm install update-notifier
 const updateNotifier = require('update-notifier');
 const pkg = require('./package.json');
 
-updateNotifier({pkg}).notify();
+// either hardcode that here or retrieve it from packageJson.repository.url
+const repo = 'https://github.com/JoernBerkefeld/update-notifier-git.git';
+updateNotifier({
+  pkg,
+  remoteUrl: repo,
+}).notify();
 ```
 
 ### Comprehensive
@@ -37,9 +58,14 @@ updateNotifier({pkg}).notify();
 ```js
 const updateNotifier = require('update-notifier');
 const pkg = require('./package.json');
+// either hardcode that here or retrieve it from packageJson.repository.url
+const repo = 'https://github.com/JoernBerkefeld/update-notifier-git.git';
 
 // Checks for available update and returns an instance
-const notifier = updateNotifier({pkg});
+const notifier = updateNotifier({
+  pkg,
+  remoteUrl: repo,
+});
 
 // Notify using the built-in convenience method
 notifier.notify();
@@ -48,10 +74,10 @@ notifier.notify();
 console.log(notifier.update);
 /*
 {
-	latest: '1.0.1',
-	current: '1.0.0',
-	type: 'patch', // Possible values: latest, major, minor, patch, prerelease, build
-	name: 'pageres'
+ latest: '1.0.1',
+ current: '1.0.0',
+ type: 'patch', // Possible values: latest, major, minor, patch, prerelease, build
+ name: 'pageres'
 }
 */
 ```
@@ -60,12 +86,12 @@ console.log(notifier.update);
 
 ```js
 const notifier = updateNotifier({
-	pkg,
-	updateCheckInterval: 1000 * 60 * 60 * 24 * 7 // 1 week
+  pkg,
+  updateCheckInterval: 1000 * 60 * 60 * 24 * 7, // 1 week
 });
 
 if (notifier.update) {
-	console.log(`Update available: ${notifier.update.latest}`);
+  console.log(`Update available: ${notifier.update.latest}`);
 }
 ```
 
@@ -82,28 +108,35 @@ The first time the user runs your app, it will check for an update, and even if 
 
 Checks if there is an available update. Accepts options defined below. Returns an instance with an `.update` property if there is an available update, otherwise `undefined`.
 
-### options
-
-Type: `object`
-
 #### options.pkg
 
 Type: `object`
 
 ##### options.pkg.name
 
-*Required*\
+_Required_\
 Type: `string`
 
 ##### options.pkg.version
 
-*Required*\
+_Required_\
 Type: `string`
+
+#### options.remoteUrl
+
+Type: `String`\
+Default: `null`
+
+If your package is not published on NPM but instead only resides on a Git repo (e.g. GitHub, Gitlab, Bitbucket).
+
+If you specify this parameter, NPM will not be checked but instead git is used to make a callout to your repo and retrieve version tags.
+
+The info message to the user is also updated to show `npm update <package name>` instead of `npm install <url>` as that will not require you to specify the URL (like for npm install) but use the URL specified during the initial install, making things easier for your users.
 
 #### options.updateCheckInterval
 
 Type: `number`\
-Default: `1000 * 60 * 60 * 24` *(1 day)*
+Default: `1000 * 60 * 60 * 24` _(1 day)_
 
 How often to check for updates.
 
@@ -134,22 +167,18 @@ Returns an `object` with:
 
 ### notifier.notify(options?)
 
-Convenience method to display a notification message. *(See screenshot)*
+Convenience method to display a notification message. _(See screenshot)_
 
 Only notifies if there is an update and the process is [TTY](https://nodejs.org/api/process.html#process_a_note_on_process_i_o).
 
-#### options
-
-Type: `object`
-
-##### options.defer
+#### options.defer
 
 Type: `boolean`\
 Default: `true`
 
 Defer showing the notification to after the process has exited.
 
-##### options.message
+#### options.message
 
 Type: `string`\
 Default: [See above screenshot](https://github.com/yeoman/update-notifier#update-notifier-)
@@ -164,32 +193,25 @@ Available placeholders:
 - `{updateCommand}` - Update command.
 
 ```js
-notifier.notify({message: 'Run `{updateCommand}` to update.'});
+notifier.notify({ message: 'Run `{updateCommand}` to update.' });
 
 // Output:
 // Run `npm install update-notifier-tester@1.0.0` to update.
 ```
 
-##### options.isGlobal
+#### options.isGlobal
 
 Type: `boolean`\
 Default: Auto-detect
 
 Include the `-g` argument in the default message's `npm i` recommendation. You may want to change this if your CLI package can be installed as a dependency of another project, and don't want to recommend a global installation. This option is ignored if you supply your own `message` (see above).
 
-##### options.boxenOptions
+#### options.boxenOptions
 
 Type: `object`\
-Default: `{padding: 1, margin: 1, align: 'center', borderColor: 'yellow', borderStyle: 'round'}` *(See screenshot)*
+Default: `{padding: 1, margin: 1, align: 'center', borderColor: 'yellow', borderStyle: 'round'}` _(See screenshot)_
 
 Options object that will be passed to [`boxen`](https://github.com/sindresorhus/boxen).
-
-##### options.remoteUrl
-
-Type: `String`\
-Default: `null`
-
-If your package is not published on NPM but instead only resides on a Git repo (e.g. GitHub, Gitlab, Bitbucket).
 
 ### User settings
 
@@ -198,8 +220,9 @@ Users of your module have the ability to opt-out of the update notifier by chang
 Users can also opt-out by [setting the environment variable](https://github.com/sindresorhus/guides/blob/master/set-environment-variables.md) `NO_UPDATE_NOTIFIER` with any value or by using the `--no-update-notifier` flag on a per run basis.
 
 The check is also skipped automatically:
-  - on CI
-  - in unit tests (when the `NODE_ENV` environment variable is `test`)
+
+- on CI
+- in unit tests (when the `NODE_ENV` environment variable is `test`)
 
 ## About
 
@@ -221,11 +244,11 @@ There are a bunch projects using it:
 ---
 
 <div align="center">
-	<b>
-		<a href="https://tidelift.com/subscription/pkg/npm-update_notifier?utm_source=npm-update-notifier&utm_medium=referral&utm_campaign=readme">Get professional support for this package with a Tidelift subscription</a>
-	</b>
-	<br>
-	<sub>
-		Tidelift helps make open source sustainable for maintainers while giving companies<br>assurances about security, maintenance, and licensing for their dependencies.
-	</sub>
+ <b>
+  <a href="https://tidelift.com/subscription/pkg/npm-update_notifier?utm_source=npm-update-notifier&utm_medium=referral&utm_campaign=readme">Get professional support for this package with a Tidelift subscription</a>
+ </b>
+ <br>
+ <sub>
+  Tidelift helps make open source sustainable for maintainers while giving companies<br>assurances about security, maintenance, and licensing for their dependencies.
+ </sub>
 </div>
