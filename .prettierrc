@@ -1,0 +1,23 @@
+{
+	"tabWidth": 4,
+	"useTabs": true,
+	"trailingComma": "es5",
+	"printWidth": 100,
+	"singleQuote": true,
+	"arrowParens": "always",
+	"overrides": [
+		{
+			"files": "*.json",
+			"options": {
+				"parser": "json"
+			}
+		},
+		{
+			"files": "*.md",
+			"options": {
+				"useTabs": false,
+				"tabWidth": 2
+			}
+		}
+	]
+}
