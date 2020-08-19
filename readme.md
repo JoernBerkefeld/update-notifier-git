@@ -27,7 +27,6 @@ Inform users of your package of updates in a non-intrusive way.
 		- [options.boxenOptions](#optionsboxenoptions)
 	- [User settings](#user-settings)
 - [About](#about)
-- [Users](#users)
 
 ## Install
 
@@ -40,7 +39,7 @@ npm install update-notifier-git --save
 ### Simple
 
 ```js
-const updateNotifier = require('update-notifier');
+const updateNotifier = require('update-notifier-git');
 const pkg = require('./package.json');
 
 // either hardcode that here or retrieve it from packageJson.repository.url
@@ -54,7 +53,7 @@ updateNotifier({
 ### Comprehensive
 
 ```js
-const updateNotifier = require('update-notifier');
+const updateNotifier = require('update-notifier-git');
 const pkg = require('./package.json');
 // either hardcode that here or retrieve it from packageJson.repository.url
 const repo = 'https://github.com/JoernBerkefeld/update-notifier-git.git';
@@ -224,29 +223,6 @@ The check is also skipped automatically:
 
 ## About
 
-The idea for this module came from the desire to apply the browser update strategy to CLI tools, where everyone is always on the latest version. We first tried automatic updating, which we discovered wasn't popular. This is the second iteration of that idea, but limited to just update notifications.
+The idea for this module came from the desire to apply the browser update strategy to CLI tools, where everyone is always on the latest version. We first tried automatic updating, which we discovered wasn't popular.
 
-## Users
-
-There are a bunch projects using it:
-
-- [npm](https://github.com/npm/npm) - Package manager for JavaScript
-- [Yeoman](https://yeoman.io) - Modern workflows for modern webapps
-- [AVA](https://ava.li) - Simple concurrent test runner
-- [XO](https://github.com/xojs/xo) - JavaScript happiness style linter
-- [Pageres](https://github.com/sindresorhus/pageres) - Capture website screenshots
-- [Node GH](https://github.com/node-gh/gh) - GitHub command line tool
-
-[And 2700+ more…](https://www.npmjs.org/browse/depended/update-notifier)
-
----
-
-<div align="center">
- <b>
-  <a href="https://tidelift.com/subscription/pkg/npm-update_notifier?utm_source=npm-update-notifier&utm_medium=referral&utm_campaign=readme">Get professional support for this package with a Tidelift subscription</a>
- </b>
- <br>
- <sub>
-  Tidelift helps make open source sustainable for maintainers while giving companies<br>assurances about security, maintenance, and licensing for their dependencies.
- </sub>
-</div>
+This is the third iteration of that idea, this time adding full git support in parallel to npm packages.
