@@ -1,7 +1,7 @@
 'use strict';
-const {spawn} = require('child_process');
+const { spawn } = require('child_process');
 const path = require('path');
-const {format} = require('util');
+const { format } = require('util');
 const importLazy = require('import-lazy')(require);
 
 const configstore = importLazy('configstore');
@@ -18,14 +18,24 @@ const pupa = importLazy('pupa');
 const gitVersionTag = require('git-version-tag');
 const execSync = require('child_process').execSync;
 
+/**
+ * simplified check to determine global or local install of the current package
+ * @returns {Boolean} true:global, false:local
+ */
 const isNpmGlobal = function () {
 	const globalNpmRepos = execSync('npm root --global').toString().trim();
 	return __dirname.startsWith(globalNpmRepos);
 };
 const ONE_DAY = 1000 * 60 * 60 * 24;
 
-
+/**
+ * main class
+ */
 class UpdateNotifier {
+	/**
+	 * constructor for UpdateNotifier
+	 * @param {Object} options configuration
+	 */
 	constructor(options = {}) {
 		this.options = options;
 		options.pkg = options.pkg || {};
@@ -36,7 +46,7 @@ class UpdateNotifier {
 		// TODO: Remove deprecated options at some point far into the future
 		options.pkg = {
 			name: options.pkg.name || options.packageName,
-			version: options.pkg.version || options.packageVersion
+			version: options.pkg.version || options.packageVersion,
 		};
 
 		if (!options.pkg.name || !options.pkg.version) {
@@ -45,8 +55,10 @@ class UpdateNotifier {
 
 		this.packageName = options.pkg.name;
 		this.packageVersion = options.pkg.version;
-		this.updateCheckInterval = typeof options.updateCheckInterval === 'number' ? options.updateCheckInterval : ONE_DAY;
-		this.disabled = 'NO_UPDATE_NOTIFIER' in process.env ||
+		this.updateCheckInterval =
+			typeof options.updateCheckInterval === 'number' ? options.updateCheckInterval : ONE_DAY;
+		this.disabled =
+			'NO_UPDATE_NOTIFIER' in process.env ||
 			process.env.NODE_ENV === 'test' ||
 			process.argv.includes('--no-update-notifier') ||
 			isCi();
@@ -59,7 +71,7 @@ class UpdateNotifier {
 					optOut: false,
 					// Init with the current time so the first check is only
 					// after the set interval, so not to bother users right away
-					lastUpdateCheck: Date.now()
+					lastUpdateCheck: Date.now(),
 				});
 			} catch (_) {
 				// Expecting error code EACCES or EPERM
@@ -67,21 +79,23 @@ class UpdateNotifier {
 					chalk().yellow(format(' %s update check failed ', options.pkg.name)) +
 					format('\n Try running with %s or get access ', chalk().cyan('sudo')) +
 					'\n to the local update config store via \n' +
-					chalk().cyan(format(' sudo chown -R $USER:$(id -gn $USER) %s ', xdgBasedir().config));
+					chalk().cyan(
+						format(' sudo chown -R $USER:$(id -gn $USER) %s ', xdgBasedir().config)
+					);
 
 				process.on('exit', () => {
-					console.error(boxen()(message, {align: 'center'}));
+					console.error(boxen()(message, { align: 'center' }));
 				});
 			}
 		}
 	}
-
+	/**
+	 * initiate async callout
+	 * Note: results will likely only be available the next time this is run
+	 * @returns {void}
+	 */
 	check() {
-		if (
-			!this.config ||
-			this.config.get('optOut') ||
-			this.disabled
-		) {
+		if (!this.config || this.config.get('optOut') || this.disabled) {
 			return;
 		}
 
@@ -103,40 +117,58 @@ class UpdateNotifier {
 		// Spawn a detached process, passing the options as an environment property
 		spawn(process.execPath, [path.join(__dirname, 'check.js'), JSON.stringify(this.options)], {
 			detached: true,
-			stdio: 'ignore'
+			stdio: 'ignore',
 		}).unref();
 	}
 
+	/**
+	 * actually conducts the callout
+	 * only called via check.js
+	 * @returns {Object} detailed info on comparison
+	 */
 	async fetchInfo() {
-		const {distTag} = this.options;
+		const { distTag } = this.options;
 		let latest;
 		if (this.options.remoteUrl) {
 			// Git approach - for packages not published on npm
-			latest = await gitVersionTag(this.options.remoteUrl, {getLatest: true});
-			latest = latest.startsWith('v') ? latest.slice(1) : latest
+			latest = await gitVersionTag(this.options.remoteUrl, { getLatest: true });
+			latest = latest.startsWith('v') ? latest.slice(1) : latest;
 		} else {
 			// Npm approach
-			latest = await latestVersion()(this.packageName, {version: distTag});
+			latest = await latestVersion()(this.packageName, { version: distTag });
 		}
 
 		return {
 			latest,
 			current: this.packageVersion,
 			type: semverDiff()(this.packageVersion, latest) || distTag,
-			name: this.packageName
+			name: this.packageName,
 		};
 	}
 
+	/**
+	 * output info message to CLI
+	 * @param {Object} options settings
+	 * @returns {Object} UpdateNotifier instance
+	 */
 	notify(options) {
 		const suppressForNpm = !this.shouldNotifyInNpmScript && isNpm().isNpmOrYarn;
-		if (!process.stdout.isTTY || suppressForNpm || !this.update || this.update.current === this.update.latest) {
+		if (
+			!process.stdout.isTTY ||
+			suppressForNpm ||
+			!this.update ||
+			this.update.current === this.update.latest
+		) {
 			return this;
 		}
 
-		options = Object.assign({
-			isGlobal: isNpmGlobal(),
-			isYarnGlobal: isYarnGlobal()()
-		}, options);
+		options = Object.assign(
+			{
+				isGlobal: isNpmGlobal(),
+				isYarnGlobal: isYarnGlobal()(),
+			},
+			options
+		);
 
 		let installCommand;
 
@@ -154,11 +186,14 @@ class UpdateNotifier {
 			installCommand = `npm i ${this.packageName}`;
 		}
 
-		const defaultTemplate = 'Update available ' +
+		const defaultTemplate =
+			'Update available ' +
 			chalk().dim('{currentVersion}') +
 			chalk().reset(' → ') +
 			chalk().green('{latestVersion}') +
-			' \nRun ' + chalk().cyan('{updateCommand}') + ' to update';
+			' \nRun ' +
+			chalk().cyan('{updateCommand}') +
+			' to update';
 
 		const template = options.message || defaultTemplate;
 
@@ -167,7 +202,7 @@ class UpdateNotifier {
 			margin: 1,
 			align: 'center',
 			borderColor: 'yellow',
-			borderStyle: 'round'
+			borderStyle: 'round',
 		};
 
 		const message = boxen()(
@@ -175,7 +210,7 @@ class UpdateNotifier {
 				packageName: this.packageName,
 				currentVersion: this.update.current,
 				latestVersion: this.update.latest,
-				updateCommand: installCommand
+				updateCommand: installCommand,
 			}),
 			options.boxenOptions
 		);
@@ -197,7 +232,7 @@ class UpdateNotifier {
 	}
 }
 
-module.exports = options => {
+module.exports = (options) => {
 	const updateNotifier = new UpdateNotifier(options);
 	updateNotifier.check();
 	return updateNotifier;

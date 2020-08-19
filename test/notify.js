@@ -6,22 +6,27 @@ import test from 'ava';
 import mock from 'mock-require';
 
 const stderr = new FixtureStdout({
-	stream: process.stderr
+	stream: process.stderr,
 });
 
+/**
+ * class
+ * @param {Boolean} shouldNotifyInNpmScript enable notification
+ * @returns {void}
+ */
 function Control(shouldNotifyInNpmScript) {
 	this.packageName = 'update-notifier-tester';
 	this.update = {
 		current: '0.0.2',
-		latest: '1.0.0'
+		latest: '1.0.0',
 	};
 	this.shouldNotifyInNpmScript = shouldNotifyInNpmScript;
 }
 
-const setupTest = isNpmReturnValue => {
+const setupTest = (isNpmReturnValue) => {
 	['..', 'is-npm'].forEach(clearModule);
 	process.stdout.isTTY = true;
-	mock('is-npm', {isNpmOrYarn: isNpmReturnValue || false});
+	mock('is-npm', { isNpmOrYarn: isNpmReturnValue || false });
 	const updateNotifier = require('..');
 	util.inherits(Control, updateNotifier.UpdateNotifier);
 };
@@ -30,7 +35,7 @@ let errorLogs = '';
 
 test.beforeEach(() => {
 	setupTest();
-	stderr.capture(s => {
+	stderr.capture((s) => {
 		errorLogs += s;
 		return false;
 	});
@@ -42,11 +47,13 @@ test.afterEach(() => {
 	errorLogs = '';
 });
 
-test('use pretty boxen message by default', t => {
+test('use pretty boxen message by default', (t) => {
 	const notifier = new Control();
-	notifier.notify({defer: false, isGlobal: true});
+	notifier.notify({ defer: false, isGlobal: true });
 
-	t.is(stripAnsi(errorLogs), `
+	t.is(
+		stripAnsi(errorLogs),
+		`
    ╭───────────────────────────────────────────────────╮
    │                                                   │
    │          Update available 0.0.2 → 1.0.0           │
@@ -54,21 +61,22 @@ test('use pretty boxen message by default', t => {
    │                                                   │
    ╰───────────────────────────────────────────────────╯
 
-`);
+`
+	);
 });
 
-test('supports custom message', t => {
+test('supports custom message', (t) => {
 	const notifier = new Control();
 	notifier.notify({
 		defer: false,
 		isGlobal: true,
-		message: 'custom message'
+		message: 'custom message',
 	});
 
 	t.true(stripAnsi(errorLogs).includes('custom message'));
 });
 
-test('supports message with placeholders', t => {
+test('supports message with placeholders', (t) => {
 	const notifier = new Control();
 	notifier.notify({
 		defer: false,
@@ -77,11 +85,13 @@ test('supports message with placeholders', t => {
 			'Package Name: {packageName}',
 			'Current Version: {currentVersion}',
 			'Latest Version: {latestVersion}',
-			'Update Command: {updateCommand}'
-		].join('\n')
+			'Update Command: {updateCommand}',
+		].join('\n'),
 	});
 
-	t.is(stripAnsi(errorLogs), `
+	t.is(
+		stripAnsi(errorLogs),
+		`
    ╭─────────────────────────────────────────────────────╮
    │                                                     │
    │        Package Name: update-notifier-tester         │
@@ -91,39 +101,40 @@ test('supports message with placeholders', t => {
    │                                                     │
    ╰─────────────────────────────────────────────────────╯
 
-`);
+`
+	);
 });
 
-test('exclude -g argument when `isGlobal` option is `false`', t => {
+test('exclude -g argument when `isGlobal` option is `false`', (t) => {
 	const notifier = new Control();
-	notifier.notify({defer: false, isGlobal: false});
+	notifier.notify({ defer: false, isGlobal: false });
 	t.not(stripAnsi(errorLogs).indexOf('Run npm i update-notifier-tester to update'), -1);
 });
 
-test('shouldNotifyInNpmScript should default to false', t => {
+test('shouldNotifyInNpmScript should default to false', (t) => {
 	const notifier = new Control();
-	notifier.notify({defer: false});
+	notifier.notify({ defer: false });
 	t.not(stripAnsi(errorLogs).indexOf('Update available'), -1);
 });
 
-test('suppress output when running as npm script', t => {
+test('suppress output when running as npm script', (t) => {
 	setupTest(true);
 	const notifier = new Control();
-	notifier.notify({defer: false});
+	notifier.notify({ defer: false });
 	t.false(stripAnsi(errorLogs).includes('Update available'));
 });
 
-test('should output if running as npm script and shouldNotifyInNpmScript option set', t => {
+test('should output if running as npm script and shouldNotifyInNpmScript option set', (t) => {
 	setupTest(true);
 	const notifier = new Control(true);
-	notifier.notify({defer: false});
+	notifier.notify({ defer: false });
 	t.true(stripAnsi(errorLogs).includes('Update available'));
 });
 
-test('should not output if current version is the latest', t => {
+test('should not output if current version is the latest', (t) => {
 	setupTest(true);
 	const notifier = new Control(true);
 	notifier.update.current = '1.0.0';
-	notifier.notify({defer: false});
+	notifier.notify({ defer: false });
 	t.false(stripAnsi(errorLogs).includes('Update available'));
 });

@@ -15,8 +15,6 @@ Inform users of your package of updates in a non-intrusive way.
 - [API](#api)
 	- [notifier = updateNotifier(options)](#notifier--updatenotifieroptions)
 		- [options.pkg](#optionspkg)
-			- [options.pkg.name](#optionspkgname)
-			- [options.pkg.version](#optionspkgversion)
 		- [options.remoteUrl](#optionsremoteurl)
 		- [options.updateCheckInterval](#optionsupdatecheckinterval)
 		- [options.shouldNotifyInNpmScript](#optionsshouldnotifyinnpmscript)
