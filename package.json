@@ -1,6 +1,6 @@
 {
 	"name": "update-notifier-git",
-	"version": "5.0.2",
+	"version": "5.0.3",
 	"description": "Update notifications for your CLI app",
 	"license": "BSD-2-Clause",
 	"repository": "JoernBerkefeld/update-notifier-git",
