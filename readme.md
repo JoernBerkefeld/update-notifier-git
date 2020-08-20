@@ -4,6 +4,9 @@
 
 ![example](screenshot.png)
 
+
+[![NPM](https://nodei.co/npm/update-notifier-git.png?downloads=true&downloadRank=true&stars=true)](https://www.npmjs.com/package/update-notifier-git)
+
 Inform users of your package of updates in a non-intrusive way.
 
 - [Install](#install)
